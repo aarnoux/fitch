@@ -1,5 +1,5 @@
 from xml.dom import minidom
-import bitstring as bs
+from bitstring import BitArray
 
 def create_node(upper_node, node_name, etiq, cost):
     node = xml.createElement(node_name)
