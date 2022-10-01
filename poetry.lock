@@ -1,4 +1,12 @@
 [[package]]
+name = "bitstream"
+version = "2.6.0.2"
+description = "Binary Data for Humans"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "bitstring"
 version = "3.1.9"
 description = "Simple construction, analysis and modification of binary data."
@@ -6,10 +14,20 @@ category = "main"
 optional = false
 python-versions = "*"
 
+[[package]]
+name = "numpy"
+version = "1.23.3"
+description = "NumPy is the fundamental package for array computing with Python."
+category = "main"
+optional = false
+python-versions = ">=3.8"
+
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "22269584c9d929b7b5ba4376cbe8617b45cab2e4e97c26c72825fc557baa15a7"
+content-hash = "7acb37ab5681d1df768f1b9b01e0e7d2c47ce7c0b0bb841b3954f59c35ee5c51"
 
 [metadata.files]
+bitstream = []
 bitstring = []
+numpy = []

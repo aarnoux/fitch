@@ -1,17 +1,17 @@
 <?xml version="1.0" ?>
-<root etiq="" cost="">
+<root etiq="" cost="null">
 	<32 etiq="" cost="">
-		<31 etiq="312" cost=""/>
-		<27 etiq="320" cost=""/>
+		<31 etiq="110110" cost=""/>
+		<27 etiq="111000" cost=""/>
 	</32>
 	<22 etiq="" cost="">
 		<21 etiq="" cost="">
-			<20 etiq="023" cost=""/>
-			<16 etiq="020" cost=""/>
+			<20 etiq="001011" cost=""/>
+			<16 etiq="001000" cost=""/>
 		</21>
 		<11 etiq="" cost="">
-			<10 etiq="013" cost=""/>
-			<6 etiq="013" cost=""/>
+			<10 etiq="000111" cost=""/>
+			<6 etiq="000111" cost=""/>
 		</11>
 	</22>
 </root>

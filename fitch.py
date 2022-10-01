@@ -1,5 +1,6 @@
-from xml.dom import minidom
 from bitstring import BitArray
+from xml.dom import minidom
+from queue import LifoQueue
 
 def create_node(upper_node, node_name, etiq, cost):
     node = xml.createElement(node_name)
@@ -8,20 +9,40 @@ def create_node(upper_node, node_name, etiq, cost):
     upper_node.appendChild(node)
     return node
 
-def consensus(upper_node):
+def get_nodes(upper_node, node_queue):
     for child in upper_node.childNodes:
-        if child.getAttribute('etiq') == '':
-            consensus(child)
-        for i in range(lenEtiq):
-            etiq1 = etiq1 + bin(int(upper_node.childNodes[0].getAttribute('etiq')[i]))
-            etiq2 = etiq2 + bin(int(upper_node.childNodes[1].getAttribute('etiq')[i]))
-        print(etiq1, etiq2)
+        if child.childNodes:
+            node_queue.put(child)
+            get_nodes(child, node_queue)
+    return node_queue
 
-        etiq = bin(int(upper_node.childNodes[0].getAttribute('etiq')) ^ int(upper_node.childNodes[1].getAttribute('etiq')))
-        print(upper_node)
-        print(etiq)
-        if etiq == 0:
-            upper_node.setAttribute('etiq', etiq)
+def consensus(node_queue):
+    intern_node = node_queue.get()
+    etiq_intern = intern_node.getAttribute('etiq')
+    pos = []
+    n = 0
+    comp = intern_node.childNodes[0].getAttribute('etiq') ^ intern_node.childNodes[1].getAttribute('etiq')
+    for i in range(0, len(comp), 2):
+        if bin(1) not in comp[i:i+2]:
+            etiq_intern.insert(intern_node.childNodes[0].getAttribute('etiq')[i:i+2], i+n)
+        else:
+            pos.append(i+n)
+            etiq_intern.insert(intern_node.childNodes[0].getAttribute('etiq')[i:i+2], i+n)
+            n += 2
+            etiq_intern.insert(intern_node.childNodes[1].getAttribute('etiq')[i:i+2], i+n)
+            print("consensus = ", etiq_intern)
+            print(pos)
+        #upper_node.setAttribute('etiq', etiq_intern)
+        print(intern_node.nodeName)
+        print(intern_node.getAttribute("etiq"))
+    consensus(node_queue)
+
+        # if etiq_intern == BitStream(lenEtiq * 2):
+        #     upper_node.setAttribute('etiq', upper_node.childNodes[0].getAttribute('etiq'))
+        # print(etiq_intern, child)
+
+        #    print(upper_node)
+        #    print(upper_node.getAttribute('etiq'))
 
 tree = "(((ACT,ACT),(AGA,AGT)),(TGA,TCG));"
 
@@ -38,19 +59,16 @@ xml = minidom.Document()
 node = create_node(xml, 'root', '', 'null')
 
 for i in range(len(tree)-1, 0, -1):
-    etiq = 0
+    etiq = BitArray()
     cost = ''
     if tree[i] == ')':
         if tree[i-1] in alphabet.keys():
             j = 1
+            pos = 0
             while j <= lenEtiq:
-                etiq = BitArray(lenEtiq*2)
-                print(etiq)
-                etiq = etiq + alphabet[tree[i-j]]
-                print(etiq, "=", bin(etiq))
-                etiq >> 2
-                print(bin(etiq))
+                etiq.insert(format(alphabet[tree[i-j]], '#04b'), pos)
                 j += 1
+                pos -= 2
         node = create_node(node, str(i), etiq, cost)
 
     if tree[i] == ',':
@@ -59,16 +77,20 @@ for i in range(len(tree)-1, 0, -1):
             node = node.parentNode
         if tree[i-1] in alphabet.keys():
             j = 1
+            pos = 0
             while j <= lenEtiq:
-                etiq = str(alphabet[tree[i-j]]) + etiq
+                etiq.insert(format(alphabet[tree[i-j]], '#04b'), pos)
                 j += 1
+                pos -= 2
         node = create_node(node, str(i), etiq, cost)
 
-consensus(xml)
+node_queue = LifoQueue()
+node_queue = get_nodes(xml.childNodes[0], node_queue)
+consensus(node_queue)
 
-xml_str = xml.toprettyxml(indent ="\t") 
+# xml_str = xml.toprettyxml(indent ="\t") 
   
-save_path_file = "tree.xml"
+# save_path_file = "tree.xml"
   
-with open(save_path_file, "w") as f:
-    f.write(xml_str)
+# with open(save_path_file, "w") as f:
+#     f.write(xml_str)
