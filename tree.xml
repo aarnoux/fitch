@@ -1,17 +1,17 @@
 <?xml version="1.0" ?>
-<root etiq="TCG" cost="NA">
-	<32 etiq="TCG" cost="">
-		<31 etiq="TCG" cost=""/>
-		<27 etiq="TGA" cost=""/>
+<root label="ACT" cost="NA">
+	<32 label="ACT" cost="">
+		<31 label="TCG" cost=""/>
+		<27 label="ACT" cost=""/>
 	</32>
-	<22 etiq="ACT" cost="">
-		<21 etiq="AGT" cost="">
-			<20 etiq="AGT" cost=""/>
-			<16 etiq="AGA" cost=""/>
+	<22 label="AGT" cost="">
+		<21 label="AGT" cost="">
+			<20 label="AGT" cost=""/>
+			<16 label="TGA" cost=""/>
 		</21>
-		<11 etiq="ACT" cost="">
-			<10 etiq="ACT" cost=""/>
-			<6 etiq="ACT" cost=""/>
+		<11 label="AGT" cost="">
+			<10 label="AGA" cost=""/>
+			<6 label="ACT" cost=""/>
 		</11>
 	</22>
 </root>
