@@ -1,10 +1,13 @@
 from bitstring import BitArray
 from xml.dom import minidom
 from queue import LifoQueue
+import logging
 import sys
 
+logging.getLogger().setLevel(logging.INFO)
 
-def create_node(xml, parent_node, node_name, label, cost):
+
+def create_node(xml, parent_node, node_name, label):
     """Create a node in an xml document and initiate attributes.
 
     Args:
@@ -12,14 +15,12 @@ def create_node(xml, parent_node, node_name, label, cost):
         parent_node (xml.dom.minidom.Element): parent node of the newly created node
         node_name (str): node name accessed with node.nodeName
         label (BitArray): node label
-        cost (str): parent node <> node branch cost
 
     Returns:
         xml.dom.minidom.Element: newly created node
     """
     node = xml.createElement(node_name)
     node.setAttribute("label", label)
-    node.setAttribute("cost", cost)
     parent_node.appendChild(node)
     return node
 
@@ -116,7 +117,7 @@ def no_consensus(minNode, maxNode, pos):
 
 def labeling(node_queue, lenLabel):
     """Find the label of internal nodes.
-    Handle the labeling of nodes in pair at once (brother nodes).
+    Handle the labeling of nodes in pair (brother nodes).
 
     Args:
         node_queue (queue): LIFO queue containing all internal nodes
@@ -125,7 +126,7 @@ def labeling(node_queue, lenLabel):
     pos = 0
     # get the deepest not-leaf node from the tree
     intern_node = node_queue.get()
-    if node_queue.empty():  # if the node is the root
+    if node_queue.empty():  # if the node is the root, bypass the brother node
         bro_node = intern_node
     else:
         # get the second deepest not-leaf node (= brother of previous node, as we work with binary trees)
@@ -194,14 +195,15 @@ def read_newick(xml, tree, node, lenLabel, alphabet):
         lenLabel (int): max length of the labels
         alphabet (dict): dictionnary with letter as key and int as value
     """
+    treeLeaf = 0
     # read the string from right to left
     for i in range(len(tree) - 1, 0, -1):
         label = BitArray()
-        cost = ""
         # a closed parenthesis means a new node
         if tree[i] == ")":
             # a serie of letter means the node is a leaf with a label
             if tree[i - 1] in alphabet.keys():
+                treeLeaf += 1
                 j = 1
                 pos = 0
                 while j <= lenLabel:  # read the label
@@ -209,7 +211,7 @@ def read_newick(xml, tree, node, lenLabel, alphabet):
                     label.insert(format(alphabet[tree[i - j]], "#04b"), pos)
                     j += 1
                     pos -= 2
-            node = create_node(xml, node, str(i), label, cost)
+            node = create_node(xml, node, str(i), label)
         # a coma means the creation of a brother node, we need to go up to the parent node in order to add it to the right place in the file
         if tree[i] == ",":
             node = node.parentNode
@@ -217,13 +219,15 @@ def read_newick(xml, tree, node, lenLabel, alphabet):
             if tree[i + 1] == "(":
                 node = node.parentNode
             if tree[i - 1] in alphabet.keys():
+                treeLeaf += 1
                 j = 1
                 pos = 0
                 while j <= lenLabel:
                     label.insert(format(alphabet[tree[i - j]], "#04b"), pos)
                     j += 1
                     pos -= 2
-            node = create_node(xml, node, str(i), label, cost)
+            node = create_node(xml, node, str(i), label)
+    return treeLeaf
 
 
 def export(xml):
@@ -238,23 +242,75 @@ def export(xml):
         f.write(xml_str)
 
 
+def visualization(depth, parent_node, treeLeaf, numLeaf):
+    """_summary_
+
+    Args:
+        depth (int): depth of the current position in the tree
+        parent_node (_type_): _description_
+        treeLeaf (_type_): _description_
+        numLeaf (int): number of leaf visited 
+
+    Returns:
+        _type_: _description_
+    """
+    PIPE_PREFIX = "│   "
+    SPACE_PREFIX = "    "
+    if len(parent_node.childNodes) == 1:
+        print(f"{parent_node.childNodes[0].getAttribute('label')}")
+        parent_node = parent_node.childNodes[0]
+    for child in parent_node.childNodes:
+        if numLeaf == treeLeaf - 2:
+            PIPE_PREFIX = SPACE_PREFIX
+        if child == parent_node.childNodes[0]:
+            depth += 1
+            marker = "├──"
+        else:
+            marker = "└──"
+            if child.childNodes:
+                depth -= 1
+        if child.childNodes:
+            print(f"{SPACE_PREFIX*depth}{marker}{child.getAttribute('label')}")
+        else:
+            print(f"{SPACE_PREFIX*int(depth-1)}{PIPE_PREFIX}{marker}{child.getAttribute('label')}")
+            numLeaf += 1
+        depth, numLeaf = visualization(depth, child, treeLeaf, numLeaf)
+    return depth, numLeaf
+
+
+def help():
+    print("")
+
+
 def main():
     # Taille des étiquettes données en argument par l'utilisateur.
-    # lenLabel = sys.argv[2]
-    lenLabel = 3
+    lenLabel = int(sys.argv[1])
     tree = "(((ACT,AGA),(TGA,AGT)),(ACT,TCG));"
     # Associer des chiffres aux lettres pour utiliser moins d'espace en ne stockant chaque caractères que sur 2 bits au lieux de 8.
     alphabet = {"A": 0, "C": 1, "G": 2, "T": 3}
     xml = minidom.Document()
-    # Création de la racine
     label = BitArray()
-    node = create_node(xml, xml, "root", label, "NA")
-    read_newick(xml, tree, node, lenLabel, alphabet)
+
+    # Création de la racine
+    node = create_node(xml, xml, "root", label)
+    logging.info("=> reading newick file")
+
+    # Reading newick
+    treeLeaf = read_newick(xml, tree, node, lenLabel, alphabet)
+    logging.info("=> tree created")
     node_queue = LifoQueue()
     node_queue = get_nodes(xml, node_queue)
+    
+    logging.info("=> labeling internal nodes")
     labeling(node_queue, lenLabel)
     decode(xml, lenLabel, alphabet)
+    logging.info("=> exporting tree to xml")
     export(xml)
+
+    if "-g" in sys.argv or "--graphic" in sys.argv:
+        depth = -1
+        numLeaf = 0
+        visualization(depth, xml, treeLeaf, numLeaf)
 
 
 if __name__ == "__main__":
