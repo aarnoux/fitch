@@ -79,8 +79,7 @@ def test_consensus(node, pos, lenLabel):
 
 def no_consensus(minNode, maxNode, pos):
     """Analyse bits when there is no consensus between the child nodes.
-    To decide which bits to add to the node label, we take into account the label of the brother node (meaning a comparison between 3 labels, thus there always will be a solution).
-    Here the bits are analysed 1 by 1.
+    To decide which bits to add to the node label, we take into account the label of the brother node.
     The query node being minNode and the brother node being maxNode.
 
     Args:
@@ -102,16 +101,23 @@ def no_consensus(minNode, maxNode, pos):
         )
         return len(maxNode.getAttribute("label"))
 
-    for i in range(pos, pos + 2, 1):
+    for i in range(pos, pos + 2, 2):
         # initialize a bitstring to keep track of bits from the different labels
-        concat = BitArray()
-        concat.append(maxNode.getAttribute("label")[i : i + 1])  # add the bit of the brother node label
-        concat.append(minNode.childNodes[0].getAttribute("label")[i : i + 1])  # add the bit of the first child node label
-        concat.append((minNode.childNodes[1].getAttribute("label")[i : i + 1]))  # add the bit of the second child node label
-        if concat.count(1) < concat.count(0):
-            minNode.getAttribute("label").insert(bin(0), i)
+        concat = []
+        # we put the childs labels first so that in case of no consensus between the tree nodes the label of the first child will be taken by default
+        concat.append(minNode.childNodes[0].getAttribute("label")[i : i + 2])  # add the bit of the first child node label
+        concat.append(minNode.childNodes[1].getAttribute("label")[i : i + 2])  # add the bit of the second child node label
+
+        if len(maxNode.getAttribute("label")) == len(minNode.getAttribute("label")):
+            concat.append(maxNode.childNodes[0].getAttribute("label")[i : i + 2])  # add the bit of the first child node label
+            concat.append(maxNode.childNodes[1].getAttribute("label")[i : i + 2])  # add the bit of the second child node label
         else:
-            minNode.getAttribute("label").insert(bin(1), i)
+            concat.append(maxNode.getAttribute("label")[i : i + 2])  # add the bit of the brother node label
+
+        maxIter = max(concat.count(format(0, '#04b')), concat.count(format(1, '#04b')), concat.count(format(2, '#04b')), concat.count(format(3, '#04b')))
+        label = [value for value in concat if concat.count(value) == maxIter]
+        minNode.getAttribute("label").insert(label[0], i)
+
     return min(len(minNode.getAttribute("label")), len(maxNode.getAttribute("label")))
 
 
@@ -195,12 +201,14 @@ def read_newick(xml, tree, node, lenLabel, alphabet):
         lenLabel (int): max length of the labels
         alphabet (dict): dictionnary with letter as key and int as value
     """
+    nodeId = 0
     treeLeaf = 0
     # read the string from right to left
     for i in range(len(tree) - 1, 0, -1):
         label = BitArray()
         # a closed parenthesis means a new node
         if tree[i] == ")":
+            nodeId += 1
             # a serie of letter means the node is a leaf with a label
             if tree[i - 1] in alphabet.keys():
                 treeLeaf += 1
@@ -211,9 +219,10 @@ def read_newick(xml, tree, node, lenLabel, alphabet):
                     label.insert(format(alphabet[tree[i - j]], "#04b"), pos)
                     j += 1
                     pos -= 2
-            node = create_node(xml, node, str(i), label)
+            node = create_node(xml, node, str(nodeId), label)
         # a coma means the creation of a brother node, we need to go up to the parent node in order to add it to the right place in the file
-        if tree[i] == ",":
+        elif tree[i] == ",":
+            nodeId += 1
             node = node.parentNode
             # an open parenthesis means that the brother node is of event higher order, we need to go up again to the parent node
             if tree[i + 1] == "(":
@@ -226,7 +235,7 @@ def read_newick(xml, tree, node, lenLabel, alphabet):
                     label.insert(format(alphabet[tree[i - j]], "#04b"), pos)
                     j += 1
                     pos -= 2
-            node = create_node(xml, node, str(i), label)
+            node = create_node(xml, node, str(nodeId), label)
     return treeLeaf
 
 
@@ -285,7 +294,8 @@ def help():
 def main():
     # Taille des étiquettes données en argument par l'utilisateur.
     lenLabel = int(sys.argv[1])
-    tree = "(((ACT,AGA),(TGA,AGT)),(ACT,TCG));"
+    # Arbre Newick donné par l'utilisateur
+    tree = sys.argv[2]
     # Associer des chiffres aux lettres pour utiliser moins d'espace en ne stockant chaque caractères que sur 2 bits au lieux de 8.
     alphabet = {"A": 0, "C": 1, "G": 2, "T": 3}
     xml = minidom.Document()
@@ -307,10 +317,10 @@ def main():
     logging.info("=> exporting tree to xml")
     export(xml)
 
-    if "-g" in sys.argv or "--graphic" in sys.argv:
-        depth = -1
-        numLeaf = 0
-        visualization(depth, xml, treeLeaf, numLeaf)
+    print("\n**** labeled tree ****")
+    depth = -1
+    numLeaf = 0
+    visualization(depth, xml, treeLeaf, numLeaf)
 
 
 if __name__ == "__main__":
