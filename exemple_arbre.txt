@@ -1,0 +1,1 @@
+(((ACT,AGA),(ATG,CCC)),(ACT,TCG));
