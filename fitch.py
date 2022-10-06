@@ -5,7 +5,7 @@ import logging
 import sys
 
 logging.getLogger().setLevel(logging.INFO)
-
+#ICI
 
 def create_node(xml, parent_node, node_name, label):
     """Create a node in an xml document and initiate attributes.
