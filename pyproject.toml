@@ -7,7 +7,6 @@ authors = ["aarnoux <alizee.arnoux@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.8"
 bitstring = "^3.1.9"
-bitstream = "^2.6.0"
 numpy = "^1.23.3"
 black = "^22.8.0"
 
