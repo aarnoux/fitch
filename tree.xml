@@ -1,17 +1,17 @@
 <?xml version="1.0" ?>
-<root label="A">
-	<1 label="A">
-		<2 label="T"/>
-		<3 label="A"/>
+<root label="ACG">
+	<1 label="ACG">
+		<2 label="TCG"/>
+		<3 label="ACT"/>
 	</1>
-	<4 label="A">
-		<5 label="A">
-			<6 label="C"/>
-			<7 label="A"/>
+	<4 label="ACC">
+		<5 label="ACC">
+			<6 label="CCC"/>
+			<7 label="ATG"/>
 		</5>
-		<8 label="A">
-			<9 label="A"/>
-			<10 label="A"/>
+		<8 label="ACA">
+			<9 label="AGA"/>
+			<10 label="ACT"/>
 		</8>
 	</4>
 </root>

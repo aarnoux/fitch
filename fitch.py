@@ -5,7 +5,7 @@ import logging
 import sys
 
 logging.getLogger().setLevel(logging.INFO)
-#ICI
+
 
 def create_node(xml, parent_node, node_name, label):
     """Create a node in an xml document and initiate attributes.
@@ -251,6 +251,15 @@ def export(xml):
         f.write(xml_str)
 
 
+def tree_count(parent_node, treeLeaf, leaf, cost):
+    for child in parent_node.childNodes :
+        for i in range(0,3) :
+            if parent_node.getAttribute("label")[i] != child.getAttribute("label")[i] :
+                cost += 1
+        cost = tree_count(child, treeLeaf, leaf, cost)
+    return cost
+
+
 def visualization(depth, parent_node, treeLeaf, numLeaf):
     """_summary_
 
@@ -291,6 +300,7 @@ def help():
     print("")
 
 
+
 def main():
     # Taille des étiquettes données en argument par l'utilisateur.
     lenLabel = int(sys.argv[1])
@@ -314,9 +324,16 @@ def main():
     logging.info("=> labeling internal nodes")
     labeling(node_queue, lenLabel)
     decode(xml, lenLabel, alphabet)
+    
+    # Descendante phase
+    leaf = 0
+    cost = 0
+    cost = tree_count(xml.childNodes[0], treeLeaf, leaf, cost)
+    logging.info(f"=> tree cost = {cost}")
+
+    
     logging.info("=> exporting tree to xml")
     export(xml)
-
     print("\n**** labeled tree ****")
     depth = -1
     numLeaf = 0
