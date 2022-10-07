@@ -1,0 +1,3 @@
+"(((ACT,AGA),(ATG,CCC)),(ACT,TCG));"
+"((CGA,GGA),((CGA,CCT),(AAA,ATG)));"
+"((CGATGA,GAACGA),(CCGAGA,CCCTCT));"

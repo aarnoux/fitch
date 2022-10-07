@@ -4,12 +4,12 @@
 		<2 label="TCG"/>
 		<3 label="ACT"/>
 	</1>
-	<4 label="ACC">
-		<5 label="ACC">
-			<6 label="CCC"/>
-			<7 label="ATG"/>
+	<4 label="AAG">
+		<5 label="AGT">
+			<6 label="AGT"/>
+			<7 label="TGA"/>
 		</5>
-		<8 label="ACA">
+		<8 label="AAG">
 			<9 label="AGA"/>
 			<10 label="ACT"/>
 		</8>
